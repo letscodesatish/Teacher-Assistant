@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+deepface
+opencv-python-headless
+numpy
+reportlab
+twilio
+google-generativeai
+python-multipart
+pydantic
+python-dotenv
