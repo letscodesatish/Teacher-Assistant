@@ -14,41 +14,41 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({ id, title, description,
   };
 
   return (
-    <div className="assignment-card-premium group">
-      <div className="flex items-start justify-between mb-6">
+    <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all group relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full blur-3xl -mr-12 -mt-12 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      
+      <div className="flex justify-between items-start mb-6">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-slate-50 rounded-2xl group-hover:bg-slate-100 transition-colors">
-            <BookOpen className="text-slate-900" size={20} />
+          <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white">
+            <FileText size={20} />
           </div>
           <div>
-            <span className="badge-ai mb-1 inline-block">v1.2</span>
-            <h3 className="text-lg font-bold text-slate-900 pr-4">{title}</h3>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-bold uppercase tracking-wider">v1.2</span>
+              <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">{subject}</span>
+            </div>
+            <h3 className="font-bold text-lg text-slate-900">{title}</h3>
           </div>
         </div>
         <button 
           onClick={exportAssignment}
-          className="p-2 hover:bg-slate-50 rounded-xl transition-colors border border-slate-100 shadow-sm"
-          title="Download PDF"
+          className="w-10 h-10 rounded-xl border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:border-slate-900 transition-all"
         >
-          <Download size={18} className="text-slate-600" />
+          <Download size={18} />
         </button>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
-          <FileText size={14} />
-          {subject}
-        </div>
-        
-        <p className="text-slate-600 text-sm leading-relaxed line-clamp-3">
-          {description}
-        </p>
+      <p className="text-slate-600 text-sm leading-relaxed mb-8 line-clamp-3 font-medium">
+        {description}
+      </p>
 
-        <div className="pt-4 mt-4 border-t border-slate-50 flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-slate-400">
-           <div className="flex items-center gap-2">
-             <Calendar size={12} />
-             <span>Due: {new Date().toLocaleDateString()}</span>
-           </div>
+      <div className="flex items-center justify-between pt-6 border-t border-slate-50">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+            <Calendar size={12} />
+            <span>Due: {new Date().toLocaleDateString()}</span>
+          </div>
         </div>
       </div>
     </div>
