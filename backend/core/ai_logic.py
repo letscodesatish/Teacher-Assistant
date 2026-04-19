@@ -1,11 +1,16 @@
-import google.generativeai as genai
+try:
+    import google.generativeai as genai
+    GOOGLE_GENAI_AVAILABLE = True
+except ImportError:
+    print("Warning: google-generativeai not found. Using mock AI generation.")
+    GOOGLE_GENAI_AVAILABLE = False
 import os
 from typing import Optional
 
 class AIContentGenerator:
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
-        if self.api_key:
+        if self.api_key and GOOGLE_GENAI_AVAILABLE:
             genai.configure(api_key=self.api_key)
             self.model = genai.GenerativeModel('gemini-pro')
         else:

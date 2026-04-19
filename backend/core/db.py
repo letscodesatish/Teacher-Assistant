@@ -72,6 +72,16 @@ class Grade(Base):
     student = relationship("Student", back_populates="grades")
     exam = relationship("Exam", back_populates="grades")
 
+class Assignment(Base):
+    __tablename__ = 'assignments'
+    id = Column(Integer, primary_key=True)
+    title = Column(String(100), nullable=False)
+    description = Column(Text)
+    due_date = Column(Date)
+    subject = Column(String(100))
+    is_ai_generated = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
 # Database setup (using SQLite for local demo, easy to swap to PostgreSQL)
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./teacher_assistant.db")
 engine = create_engine(DATABASE_URL)

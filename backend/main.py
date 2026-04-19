@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import List
 import json
 
-from .core.db import SessionLocal, init_db, Student, Attendance, StudentEmbedding, Syllabus, Grade, Exam
+from .core.db import SessionLocal, init_db, Student, Attendance, StudentEmbedding, Syllabus, Grade, Exam, Assignment
 from .core.face_logic import FaceManager
 from .core.ai_logic import AIContentGenerator
 from .core.pdf_gen import PDFGenerator
@@ -81,14 +81,54 @@ async def scan_attendance(
 
 # --- AI Content Module ---
 @app.post("/ai/generate-assignment")
-async def generate_assignment(topic: str):
+async def generate_assignment(topic: str, db: Session = Depends(get_db)):
     content = await ai_gen.generate_assignment(topic)
-    return {"content": content}
+    # Automatically save generated assignment to DB
+    new_asn = Assignment(
+        title=f"AI Generated: {topic}",
+        description=content,
+        subject="General",
+        is_ai_generated=True
+    )
+    db.add(new_asn)
+    db.commit()
+    db.refresh(new_asn)
+    return {"content": content, "assignment_id": new_asn.id}
 
 @app.post("/ai/generate-paper")
 async def generate_paper(topic: str):
     content = await ai_gen.generate_question_paper(topic)
     return {"content": content}
+
+# --- Assignments Module ---
+@app.get("/assignments")
+def get_assignments(db: Session = Depends(get_db)):
+    from .core.db import Assignment
+    return db.query(Assignment).order_by(Assignment.created_at.desc()).all()
+
+@app.post("/assignments")
+def create_assignment(title: str, description: str, subject: str, db: Session = Depends(get_db)):
+    from .core.db import Assignment
+    new_asn = Assignment(title=title, description=description, subject=subject)
+    db.add(new_asn)
+    db.commit()
+    db.refresh(new_asn)
+    return new_asn
+
+@app.get("/assignments/export/{asn_id}")
+async def export_assignment(asn_id: int, db: Session = Depends(get_db)):
+    from .core.db import Assignment
+    from fastapi.responses import StreamingResponse
+    asn = db.query(Assignment).filter(Assignment.id == asn_id).first()
+    if not asn:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    
+    pdf_buf = PDFGenerator.generate_paper_pdf(asn.title, asn.description)
+    return StreamingResponse(
+        pdf_buf, 
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=assignment_{asn_id}.pdf"}
+    )
 
 # --- Syllabus Module ---
 @app.get("/syllabus")
@@ -105,6 +145,34 @@ def toggle_syllabus(item_id: int, db: Session = Depends(get_db)):
     raise HTTPException(status_code=404, detail="Item not found")
 
 # --- Grades Module ---
+@app.get("/grades/summary")
+def get_grades_summary(db: Session = Depends(get_db)):
+    # Aggregated query joining Students, Exams and Grades
+    results = db.query(
+        Student.name.label("student_name"),
+        Student.roll_number,
+        Exam.title.label("exam_title"),
+        Grade.marks_obtained,
+        Grade.total_marks
+    ).join(Grade, Student.id == Grade.student_id)\
+     .join(Exam, Grade.exam_id == Exam.id).all()
+    
+    return [
+        {
+            "student_name": r.student_name,
+            "roll_number": r.roll_number,
+            "exam_title": r.exam_title,
+            "marks_obtained": r.marks_obtained,
+            "total_marks": r.total_marks,
+            "percentage": (r.marks_obtained / r.total_marks) * 100 if r.total_marks > 0 else 0
+        } for r in results
+    ]
+
 @app.get("/grades/{student_id}")
 def get_student_grades(student_id: int, db: Session = Depends(get_db)):
     return db.query(Grade).filter(Grade.student_id == student_id).all()
+
+# --- Exams Module ---
+@app.get("/exams")
+def get_exams(db: Session = Depends(get_db)):
+    return db.query(Exam).order_by(Exam.date_time.asc()).all()
