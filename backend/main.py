@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import List
 import json
 
-from .core.db import SessionLocal, init_db, Student, Attendance, StudentEmbedding, Syllabus, Grade, Exam, Assignment
+from .core.db import SessionLocal, init_db, Student, Attendance, StudentEmbedding, Syllabus, Grade, Exam, Assignment, QuestionPaper, User
 from .core.face_logic import FaceManager
 from .core.ai_logic import AIContentGenerator
 from .core.pdf_gen import PDFGenerator
@@ -23,6 +23,12 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     init_db()
+    # Seed a default teacher if not exists
+    db = SessionLocal()
+    if not db.query(User).filter(User.email == "teacher@school.com").first():
+        db.add(User(email="teacher@school.com", password="password123", name="Dr. Satish Sharma"))
+        db.commit()
+    db.close()
 
 # Dependency
 def get_db():
@@ -95,10 +101,56 @@ async def generate_assignment(topic: str, db: Session = Depends(get_db)):
     db.refresh(new_asn)
     return {"content": content, "assignment_id": new_asn.id}
 
+@app.get("/syllabus/subjects")
+def get_subjects(db: Session = Depends(get_db)):
+    subjects = db.query(Syllabus.subject).distinct().all()
+    return [s[0] for s in subjects]
+
+@app.get("/syllabus/topics")
+def get_topics(subject: str, db: Session = Depends(get_db)):
+    topics = db.query(Syllabus).filter(Syllabus.subject == subject).all()
+    return topics
+
 @app.post("/ai/generate-paper")
-async def generate_paper(topic: str):
-    content = await ai_gen.generate_question_paper(topic)
-    return {"content": content}
+async def generate_paper(topic: str, difficulty: str = "Medium", db: Session = Depends(get_db)):
+    content = await ai_gen.generate_question_paper(topic, difficulty)
+    # Save to QuestionPaper table
+    new_paper = QuestionPaper(
+        title=f"Exam: {topic} ({difficulty})",
+        subject="AI-Generated", # Could be refined
+        topics=topic,
+        difficulty=difficulty,
+        content=content
+    )
+    db.add(new_paper)
+    db.commit()
+    db.refresh(new_paper)
+    return {"content": content, "paper_id": new_paper.id}
+
+@app.get("/question-papers")
+def get_papers(db: Session = Depends(get_db)):
+    return db.query(QuestionPaper).order_by(QuestionPaper.created_at.desc()).all()
+
+@app.get("/question-papers/{paper_id}")
+def get_paper(paper_id: int, db: Session = Depends(get_db)):
+    paper = db.query(QuestionPaper).filter(QuestionPaper.id == paper_id).first()
+    if not paper:
+        raise HTTPException(status_code=404, detail="Paper not found")
+    return paper
+
+@app.get("/question-papers/export/{paper_id}")
+async def export_paper(paper_id: int, db: Session = Depends(get_db)):
+    from fastapi.responses import StreamingResponse
+    paper = db.query(QuestionPaper).filter(QuestionPaper.id == paper_id).first()
+    if not paper:
+        raise HTTPException(status_code=404, detail="Paper not found")
+    
+    pdf_buf = PDFGenerator.generate_paper_pdf(paper.title, paper.content)
+    return StreamingResponse(
+        pdf_buf, 
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=paper_{paper_id}.pdf"}
+    )
 
 # --- Assignments Module ---
 @app.get("/assignments")
@@ -171,6 +223,36 @@ def get_grades_summary(db: Session = Depends(get_db)):
 @app.get("/grades/{student_id}")
 def get_student_grades(student_id: int, db: Session = Depends(get_db)):
     return db.query(Grade).filter(Grade.student_id == student_id).all()
+
+# --- Auth & Profile ---
+@app.post("/login")
+async def login(data: dict, db: Session = Depends(get_db)):
+    email = data.get("email")
+    password = data.get("password")
+    user = db.query(User).filter(User.email == email, User.password == password).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return {"status": "success", "user": {"id": user.id, "email": user.email, "name": user.name}}
+
+@app.get("/profile")
+def get_profile(db: Session = Depends(get_db)):
+    # For demo, return the first teacher
+    user = db.query(User).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Add some stats
+    stats = {
+        "syllabus_count": db.query(Syllabus).count(),
+        "syllabus_completed": db.query(Syllabus).filter(Syllabus.is_completed == True).count(),
+        "assignments_count": db.query(Assignment).count(),
+        "question_papers_count": db.query(QuestionPaper).count()
+    }
+    
+    return {
+        "user": {"id": user.id, "email": user.email, "name": user.name},
+        "stats": stats
+    }
 
 # --- Exams Module ---
 @app.get("/exams")

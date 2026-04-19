@@ -1,1 +1,10 @@
-{}
+{
+  "/login/page": "app/login/page.js",
+  "/attendance/page": "app/attendance/page.js",
+  "/marks/page": "app/marks/page.js",
+  "/question-paper/page": "app/question-paper/page.js",
+  "/exams/page": "app/exams/page.js",
+  "/assignments/page": "app/assignments/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/syllabus/page": "app/syllabus/page.js"
+}

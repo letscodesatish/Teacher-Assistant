@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { BookMarked, Sparkles, Plus, Search, Loader2, Wand2, Send } from 'lucide-react';
@@ -24,7 +26,7 @@ const AssignmentsPage: React.FC = () => {
 
     const fetchAssignments = async () => {
         try {
-            const resp = await axios.get('http://localhost:8005/assignments');
+            const resp = await axios.get('http://localhost:8999/assignments');
             setAssignments(resp.data);
         } catch (error) {
             console.error('Fetch failed:', error);
@@ -41,7 +43,7 @@ const AssignmentsPage: React.FC = () => {
     const generateAIAsn = async () => {
         setGenerating(true);
         try {
-            await axios.post('http://localhost:8005/assignments/generate', { topic });
+            await axios.post('http://localhost:8999/assignments/generate', { topic });
             setTopic('');
             fetchAssignments();
         } catch (error) {

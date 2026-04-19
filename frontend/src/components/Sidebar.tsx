@@ -20,7 +20,7 @@ const navItems = [
   { id: 'exams', label: 'Exam Schedule', icon: Calendar, path: '/exams' },
   { id: 'marks', label: 'Marks & Grade Book', icon: FileText, path: '/marks' },
   { id: 'assignments', label: 'Assignment Manager', icon: ClipboardList, path: '/assignments' },
-  { id: 'ai-question', label: 'AI Question Paper', icon: Cpu, path: '/ai-question' },
+  { id: 'ai-question', label: 'AI Question Paper', icon: Cpu, path: '/question-paper' },
   { id: 'syllabus', label: 'Syllabus Tracker', icon: BookOpen, path: '/syllabus' },
   { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
   { id: 'login', label: 'Login', icon: LogIn, path: '/login' },

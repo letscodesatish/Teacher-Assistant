@@ -10,7 +10,7 @@ interface AssignmentCardProps {
 
 const AssignmentCard: React.FC<AssignmentCardProps> = ({ id, title, description, subject }) => {
   const exportAssignment = () => {
-    window.open(`http://localhost:8005/assignments/export/${id}`, '_blank');
+    window.open(`http://localhost:8999/assignments/export/${id}`, '_blank');
   };
 
   return (

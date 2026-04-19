@@ -82,6 +82,25 @@ class Assignment(Base):
     is_ai_generated = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+class QuestionPaper(Base):
+    __tablename__ = 'question_papers'
+    id = Column(Integer, primary_key=True)
+    title = Column(String(200), nullable=False)
+    subject = Column(String(100), nullable=False)
+    topics = Column(Text)  # Comma-separated or JSON
+    difficulty = Column(String(20))
+    total_marks = Column(Integer, default=100)
+    content = Column(Text, nullable=False)  # The generated question paper text
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    email = Column(String(100), unique=True, nullable=False)
+    password = Column(String(100), nullable=False) # Simple string for demo
+    name = Column(String(100))
+    created_at = Column(DateTime, default=datetime.utcnow)
+
 # Database setup (using SQLite for local demo, easy to swap to PostgreSQL)
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./teacher_assistant.db")
 engine = create_engine(DATABASE_URL)

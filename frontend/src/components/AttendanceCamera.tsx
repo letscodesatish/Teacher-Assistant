@@ -53,7 +53,7 @@ const AttendanceCamera: React.FC = () => {
             formData.append('lng', location.lng.toString());
 
             try {
-                const res = await axios.post('http://localhost:8005/attendance/scan', formData);
+                const res = await axios.post('http://localhost:8999/attendance/scan', formData);
                 if (res.data.status === 'success') {
                     setStatus('success');
                     setMatchInfo(res.data);

@@ -21,7 +21,7 @@ export default function MarksGradeBook() {
     useEffect(() => {
         const fetchGrades = async () => {
             try {
-                const res = await axios.get('http://localhost:8005/grades/summary');
+                const res = await axios.get('http://localhost:8999/grades/summary');
                 setGrades(res.data);
             } catch (err) {
                 console.error("Error fetching grades:", err);

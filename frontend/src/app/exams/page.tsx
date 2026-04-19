@@ -19,7 +19,7 @@ export default function ExamSchedule() {
     useEffect(() => {
         const fetchExams = async () => {
             try {
-                const res = await axios.get('http://localhost:8005/exams');
+                const res = await axios.get('http://localhost:8999/exams');
                 setExams(res.data);
             } catch (err) {
                 console.error("Error fetching exams:", err);

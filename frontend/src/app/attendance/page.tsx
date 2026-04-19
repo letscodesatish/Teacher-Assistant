@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import AttendanceCamera from '@/components/AttendanceCamera';
 import AttendanceStats from '@/components/AttendanceStats';
