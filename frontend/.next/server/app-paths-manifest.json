@@ -1,9 +1,5 @@
 {
-  "/marks/page": "app/marks/page.js",
-  "/attendance/page": "app/attendance/page.js",
-  "/assignments/page": "app/assignments/page.js",
-  "/exams/page": "app/exams/page.js",
-  "/syllabus/page": "app/syllabus/page.js",
+  "/page": "app/page.js",
   "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
-  "/profile/page": "app/profile/page.js"
+  "/question-paper/page": "app/question-paper/page.js"
 }
