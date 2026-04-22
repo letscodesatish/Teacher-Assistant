@@ -3,11 +3,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
 import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from .core.db import SessionLocal, init_db, Student, Attendance, StudentEmbedding, Syllabus, Grade, Exam, Assignment, QuestionPaper, User
 from .core.face_logic import FaceManager
 from .core.ai_logic import AIContentGenerator
 from .core.pdf_gen import PDFGenerator
+from .core.auth import verify_password, get_password_hash, create_access_token
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
 app = FastAPI(title="Teacher Assistant API")
 
@@ -26,7 +33,8 @@ def on_startup():
     # Seed a default teacher if not exists
     db = SessionLocal()
     if not db.query(User).filter(User.email == "teacher@school.com").first():
-        db.add(User(email="teacher@school.com", password="password123", name="Dr. Satish Sharma"))
+        hashed_pw = get_password_hash("password123")
+        db.add(User(email="teacher@school.com", password=hashed_pw, name="Dr. Satish Sharma"))
         db.commit()
     db.close()
 
@@ -225,14 +233,77 @@ def get_student_grades(student_id: int, db: Session = Depends(get_db)):
     return db.query(Grade).filter(Grade.student_id == student_id).all()
 
 # --- Auth & Profile ---
+@app.post("/register")
+async def register(data: dict, db: Session = Depends(get_db)):
+    email = data.get("email")
+    password = data.get("password")
+    name = data.get("name")
+    
+    if db.query(User).filter(User.email == email).first():
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    hashed_password = get_password_hash(password)
+    new_user = User(email=email, password=hashed_password, name=name)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    token = create_access_token(data={"sub": email, "id": new_user.id})
+    return {"status": "success", "token": token, "user": {"id": new_user.id, "email": new_user.email, "name": new_user.name}}
+
 @app.post("/login")
 async def login(data: dict, db: Session = Depends(get_db)):
     email = data.get("email")
     password = data.get("password")
-    user = db.query(User).filter(User.email == email, User.password == password).first()
-    if not user:
+    user = db.query(User).filter(User.email == email).first()
+    
+    if not user or not verify_password(password, user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    return {"status": "success", "user": {"id": user.id, "email": user.email, "name": user.name}}
+    
+    token = create_access_token(data={"sub": email, "id": user.id})
+    return {"status": "success", "token": token, "user": {"id": user.id, "email": user.email, "name": user.name}}
+
+@app.post("/auth/google-login")
+async def google_login(data: dict, db: Session = Depends(get_db)):
+    token = data.get("token")
+    # In a real app, you'd get CLIENT_ID from env
+    CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+    
+    try:
+        # Verify the Google token
+        idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), CLIENT_ID)
+        
+        email = idinfo['email']
+        name = idinfo.get('name')
+        google_id = idinfo['sub']
+        avatar = idinfo.get('picture')
+        
+        # Check if user exists
+        user = db.query(User).filter(User.email == email).first()
+        
+        if not user:
+            # Create new user
+            user = User(
+                email=email, 
+                name=name, 
+                google_id=google_id, 
+                avatar_url=avatar
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        else:
+            # Update user if they didn't have google_id linked
+            if not user.google_id:
+                user.google_id = google_id
+                user.avatar_url = avatar
+                db.commit()
+
+        jwt_token = create_access_token(data={"sub": email, "id": user.id})
+        return {"status": "success", "token": jwt_token, "user": {"id": user.id, "email": user.email, "name": user.name, "avatar": user.avatar_url}}
+        
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid Google token")
 
 @app.get("/profile")
 def get_profile(db: Session = Depends(get_db)):

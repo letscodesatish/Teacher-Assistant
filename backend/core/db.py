@@ -97,8 +97,10 @@ class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
     email = Column(String(100), unique=True, nullable=False)
-    password = Column(String(100), nullable=False) # Simple string for demo
+    password = Column(String(200), nullable=True) # Hashed password
     name = Column(String(100))
+    google_id = Column(String(100), unique=True, nullable=True)
+    avatar_url = Column(String(500), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 # Database setup (using SQLite for local demo, easy to swap to PostgreSQL)

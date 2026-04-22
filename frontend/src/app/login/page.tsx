@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import React, { useState } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { LogIn, Mail, Lock, Loader2, AlertCircle, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Mail, Lock, Chrome, ArrowRight, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -13,100 +13,118 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    try {
-      const resp = await axios.post('http://localhost:8999/login', { email, password });
-      if (resp.data.status === 'success') {
-        localStorage.setItem('user', JSON.stringify(resp.data.user));
-        router.push('/attendance');
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Login failed. Please check your credentials.');
-    } finally {
+    const result = await signIn('credentials', {
+      redirect: false,
+      email,
+      password,
+    });
+
+    if (result?.error) {
+      setError('Invalid email or password');
       setLoading(false);
+    } else {
+      router.push('/');
+      router.refresh();
     }
   };
 
+  const handleGoogleSignIn = () => {
+    signIn('google', { callbackUrl: '/' });
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-[#F8FAFC]">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full"
-      >
-        <div className="bg-white p-10 rounded-[40px] shadow-2xl shadow-blue-900/5 border border-slate-100 relative overflow-hidden">
-          {/* Decorative Gradient */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-3xl -translate-y-1/2 translate-x-1/2" />
-          
-          <div className="flex flex-col items-center mb-10 relative z-10">
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200 mb-6">
-              <Sparkles className="text-white" size={32} />
-            </div>
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Welcome Back</h2>
-            <p className="text-slate-400 font-medium">Access your teacher dashboard</p>
+    <div className="min-h-screen flex items-center justify-center bg-[#0f172a] text-white p-4">
+      {/* Background Decorative Elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[120px]" />
+      </div>
+
+      <div className="w-full max-w-md relative">
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Welcome Back
+            </h1>
+            <p className="text-slate-400 mt-2">Sign in to your teacher assistant dashboard</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6 relative z-10">
-            {error && (
-              <motion.div 
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-2 p-4 bg-red-50 text-red-600 rounded-2xl text-sm font-bold border border-red-100"
-              >
-                <AlertCircle size={18} />
-                {error}
-              </motion.div>
-            )}
-
-            <div className="space-y-2">
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                <input 
-                  type="email" 
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
+                <input
+                  type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-50 focus:bg-white transition-all font-medium text-slate-600" 
-                  placeholder="teacher@school.com" 
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  placeholder="name@school.com"
                   required
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                <input 
-                  type="password" 
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
+                <input
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-50 focus:bg-white transition-all font-medium text-slate-600" 
-                  placeholder="••••••••" 
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  placeholder="••••••••"
                   required
                 />
               </div>
             </div>
 
-            <button 
+            {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+
+            <button
               type="submit"
               disabled={loading}
-              className="w-full bg-slate-900 text-white py-5 rounded-[24px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-slate-800 transition-all active:scale-[0.98] shadow-xl shadow-slate-200 disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold py-3 rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70"
             >
-              {loading ? <Loader2 className="animate-spin" size={20} /> : <LogIn size={20} />}
-              {loading ? 'Authenticating...' : 'Sign In'}
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                <>
+                  Sign In <ArrowRight className="w-5 h-5" />
+                </>
+              )}
             </button>
           </form>
 
-          <p className="mt-8 text-center text-slate-400 text-sm font-medium">
-            Demo Credentials: <span className="text-slate-900 font-bold">teacher@school.com</span> / <span className="text-slate-900 font-bold">password123</span>
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/10"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-transparent text-slate-500 uppercase">Or continue with</span>
+            </div>
+          </div>
+
+          <button
+            onClick={handleGoogleSignIn}
+            className="w-full bg-white text-slate-900 font-semibold py-3 rounded-xl flex items-center justify-center gap-3 transition-all hover:bg-slate-100 active:scale-[0.98]"
+          >
+            <Chrome className="w-5 h-5" />
+            Google
+          </button>
+
+          <p className="text-center mt-8 text-slate-400">
+            Don't have an account?{' '}
+            <Link href="/register" className="text-blue-400 hover:text-blue-300 font-medium">
+              Create Account
+            </Link>
           </p>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
