@@ -6,15 +6,20 @@ import json
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# Explicitly load the .env file located in the backend directory
+env_path = os.path.join(os.path.dirname(__file__), '.env')
+load_dotenv(dotenv_path=env_path)
 
-from .core.db import SessionLocal, init_db, Student, Attendance, StudentEmbedding, Syllabus, Grade, Exam, Assignment, QuestionPaper, User
-from .core.face_logic import FaceManager
-from .core.ai_logic import AIContentGenerator
-from .core.pdf_gen import PDFGenerator
-from .core.auth import verify_password, get_password_hash, create_access_token
+from backend.core.db import SessionLocal, init_db, Student, Attendance, StudentEmbedding, Syllabus, Grade, Exam, Assignment, QuestionPaper, User
+from backend.core.face_logic import FaceManager
+from backend.core.ai_logic import AIContentGenerator
+from backend.core.pdf_gen import PDFGenerator
+from backend.core.auth import verify_password, get_password_hash, create_access_token
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
+from backend.core.whatsapp_logic import whatsapp_gateway
+from backend.core.mongodb import list_group_links, save_group_link, ClassGroupLink
+import httpx
 
 app = FastAPI(title="Teacher Assistant API")
 
@@ -329,3 +334,75 @@ def get_profile(db: Session = Depends(get_db)):
 @app.get("/exams")
 def get_exams(db: Session = Depends(get_db)):
     return db.query(Exam).order_by(Exam.date_time.asc()).all()
+
+@app.post("/send-python-exam-notice")
+async def send_python_notice(payload: dict):
+    """
+    Simplified Python-Only Logic. No subject checking.
+    Expects payload with section, exam_date, group_id, and notice_data.
+    """
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    pdf_api_url = f"{frontend_url}/api/pdf/generate"
+
+    group_id = payload.get("group_id")
+    notice_data = payload.get("notice_data", {})
+    
+    print(f"DEBUG: Using WhatsApp Group ID: {group_id}")
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        # 1. Generate PDF
+        try:
+            pdf_res = await client.post(pdf_api_url, json=notice_data)
+            if pdf_res.status_code != 200:
+                raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {pdf_res.text}")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"PDF Generation Service Unreachable: {str(e)}")
+        
+        pdf_info = pdf_res.json()
+        pdf_base64 = pdf_info.get("base64")
+        pdf_url = pdf_info.get("fullUrl")
+        
+        # 2. Send to WhatsApp
+        document_payload = pdf_base64 if pdf_base64 else pdf_url
+
+        whatsapp_res = await whatsapp_gateway.send_document(
+            group_id=group_id,
+            document_url=document_payload,
+            filename=f"Python_MidTerm_Schedule_{notice_data.get('noticeRef', 'Notice')}.pdf",
+            caption="Attention Students: The official schedule for the upcoming Python Mid-Term exams has been posted. Please find the attached PDF."
+        )
+        
+        if whatsapp_res.get("error"):
+            raise HTTPException(status_code=400, detail=f"WhatsApp API Error: {whatsapp_res.get('error')}")
+            
+        return {"status": "success", "message": "Python Notice Dispatched", "whatsapp_response": whatsapp_res}
+
+@app.get("/whatsapp/groups")
+async def get_whatsapp_groups():
+    """
+    Fetch all available WhatsApp groups for the teacher to link.
+    """
+    groups = await whatsapp_gateway.fetch_groups()
+    
+    # Add the user's specific number to the list so they can select it
+    groups.insert(0, {
+        "id": "6387224435@c.us",
+        "name": "My Personal Number (6387224435)"
+    })
+    
+    return groups
+
+@app.get("/whatsapp/links")
+async def get_links(teacher_id: str = "default_teacher"):
+    """
+    Fetch all existing class-to-group links.
+    """
+    links = await list_group_links(teacher_id)
+    return links
+
+@app.post("/whatsapp/link")
+async def link_group(link_data: ClassGroupLink):
+    """
+    Create or update a class-to-group link.
+    """
+    await save_group_link(link_data)
+    return {"status": "success"}

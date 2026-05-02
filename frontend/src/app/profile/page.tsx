@@ -31,7 +31,7 @@ export default function ProfilePage() {
 
     const fetchProfile = async () => {
         try {
-            const resp = await axios.get('http://localhost:8999/profile');
+            const resp = await axios.get('http://localhost:8005/profile');
             setData(resp.data);
         } catch (error) {
             console.error('Profile fetch failed:', error);

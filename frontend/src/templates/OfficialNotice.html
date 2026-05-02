@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Official Exam Notice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+        body {
+            font-family: 'Crimson Pro', 'Times New Roman', serif;
+            background-color: white;
+            color: #1a1a1a;
+        }
+        .printable-area {
+            width: 170mm;
+            margin: 0 auto;
+            position: relative;
+            min-height: 250mm;
+        }
+        .university-header {
+            border-bottom: 3px double #333;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 8rem;
+            color: rgba(200, 200, 200, 0.1);
+            pointer-events: none;
+            z-index: -1;
+            white-space: nowrap;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #444;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f8f8;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="p-8">
+    <div class="printable-area">
+        <div class="watermark">CSJMU KANPUR</div>
+
+        <!-- Header Section -->
+        <div class="university-header flex items-center justify-between">
+            <div class="w-24 h-24 bg-gray-100 flex items-center justify-center border border-gray-300 rounded-full overflow-hidden">
+                <span class="text-xs text-gray-400 text-center px-2">UNIVERSITY LOGO</span>
+            </div>
+            <div class="text-center flex-1 px-4">
+                <h1 class="text-2xl font-bold uppercase tracking-widest text-blue-900">Chhatrapati Shahu Ji Maharaj University</h1>
+                <h2 class="text-xl font-semibold text-gray-700">Kanpur, Uttar Pradesh</h2>
+                <h3 class="text-lg font-bold text-gray-800 mt-2">Department of Computer Science & Engineering</h3>
+                <p class="text-sm italic text-gray-500">Established by U.P. State University Act, 1973</p>
+            </div>
+            <div class="w-24 h-24 flex items-center justify-center border border-gray-300 bg-gray-50">
+                <span class="text-[10px] text-gray-400 uppercase">Seal Area</span>
+            </div>
+        </div>
+
+        <!-- Reference & Date -->
+        <div class="flex justify-between items-start mb-10 text-sm font-semibold">
+            <div>
+                Ref. No.: <span class="border-b border-gray-400 px-2">{{noticeRef}}</span>
+            </div>
+            <div>
+                Date: <span class="border-b border-gray-400 px-2">{{issueDate}}</span>
+            </div>
+        </div>
+
+        <!-- Notice Title -->
+        <div class="text-center mb-10">
+            <h3 class="text-2xl font-bold underline decoration-double underline-offset-8">OFFICIAL EXAMINATION SCHEDULE</h3>
+            <p class="mt-4 text-gray-700 leading-relaxed px-10">
+                All concerned students are hereby notified that the examination for the following subjects will be conducted as per the schedule mentioned below. Students are advised to report at the venue 30 minutes before the commencement of the exam.
+            </p>
+        </div>
+
+        <!-- Examination Table -->
+        <div class="mb-12">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Subject Code</th>
+                        <th>Subject Name</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Venue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each exams}}
+                    <tr>
+                        <td class="font-mono text-sm">{{code}}</td>
+                        <td class="font-semibold">{{subject}}</td>
+                        <td>{{date}}</td>
+                        <td>{{time}}</td>
+                        <td>{{venue}}</td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer / Signature -->
+        <div class="absolute bottom-10 right-0 text-right w-64">
+            <div class="h-16 w-32 border-b border-gray-400 mb-2 ml-auto">
+                <!-- Signature Image Placeholder -->
+            </div>
+            <p class="font-bold text-lg">Controller of Examinations</p>
+            <p class="text-sm text-gray-600">CSJMU Kanpur</p>
+            
+            <!-- Stamp Area -->
+            <div class="mt-8 border-2 border-dashed border-red-200 rounded-full w-24 h-24 flex items-center justify-center mx-auto opacity-30 rotate-12">
+                <p class="text-[10px] font-bold text-red-500 text-center uppercase">University<br>Stamp</p>
+            </div>
+        </div>
+
+        <!-- Important Notes -->
+        <div class="mt-20 text-xs text-gray-500">
+            <p class="font-bold mb-1 underline">Important Instructions:</p>
+            <ul class="list-disc list-inside space-y-1">
+                <li>Admit card is mandatory for entry into the examination hall.</li>
+                <li>Electronic gadgets, including mobile phones and smartwatches, are strictly prohibited.</li>
+                <li>Students found using unfair means will be subject to disciplinary action as per University norms.</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

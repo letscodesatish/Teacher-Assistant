@@ -19,7 +19,7 @@ export default function ExamSchedule() {
     useEffect(() => {
         const fetchExams = async () => {
             try {
-                const res = await axios.get('http://localhost:8999/exams');
+                const res = await axios.get('http://localhost:8005/exams');
                 setExams(res.data);
             } catch (err) {
                 console.error("Error fetching exams:", err);
@@ -45,6 +45,92 @@ export default function ExamSchedule() {
     const formatTime = (isoStr: string) => {
         const date = new Date(isoStr);
         return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    };
+
+    const handleSendNotice = async (examId: number) => {
+        const exam = exams.find(e => e.id === examId);
+        if (!exam) return;
+
+        try {
+            // 1. Get the linked group for this subject
+            const linksRes = await axios.get('http://localhost:8005/whatsapp/links');
+            const link = linksRes.data.find((l: any) => l.subjectCode === exam.subject);
+
+            if (!link || !link.whatsappGroupId) {
+                alert(`No WhatsApp group linked for ${exam.subject}. Please go to "WhatsApp Links" first.`);
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to send the official exam notice for ${exam.title} to the WhatsApp group?`)) {
+                return;
+            }
+
+            // 2. Trigger the notice sending
+            const noticeData = {
+                noticeRef: `CSJMU/EXAM/${new Date().getFullYear()}/${exam.id.toString().padStart(3, '0')}`,
+                issueDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+                exams: [
+                    {
+                        code: "PY101",
+                        subject: "Python Programming",
+                        date: formatDate(exam.date_time),
+                        time: formatTime(exam.date_time),
+                        venue: "Main Campus Hall",
+                        department: "Computer Science & Engineering"
+                    }
+                ]
+            };
+
+            const res = await axios.post(`http://localhost:8005/send-python-exam-notice`, {
+                section: "Python Section A", // Defaulting to A for now
+                exam_date: exam.date_time,
+                group_id: link.whatsappGroupId,
+                notice_data: noticeData
+            });
+            
+            if (res.data.status === 'success') {
+                alert("Notice sent successfully to WhatsApp group!");
+            }
+        } catch (err: any) {
+            console.error("Error sending notice:", err);
+            const errorMessage = err.response?.data?.detail || err.message || "Unknown error";
+            alert(`Failed to send notice: ${errorMessage}`);
+        }
+    };
+
+    const handlePrintNotice = async (examId: number) => {
+        const exam = exams.find(e => e.id === examId);
+        if (!exam) return;
+
+        try {
+            const noticeData = {
+                noticeRef: `CSJMU/EXAM/${new Date().getFullYear()}/${exam.id.toString().padStart(3, '0')}`,
+                issueDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+                exams: [
+                    {
+                        code: "PY101",
+                        subject: "Python Programming",
+                        date: formatDate(exam.date_time),
+                        time: formatTime(exam.date_time),
+                        venue: "Main Campus Hall",
+                        department: "Computer Science & Engineering"
+                    }
+                ]
+            };
+
+            // Call the frontend API directly to just generate the PDF
+            const res = await axios.post('/api/pdf/generate', noticeData);
+            
+            if (res.data.success && res.data.url) {
+                // Open the generated PDF in a new tab for printing
+                window.open(res.data.url, '_blank');
+            } else {
+                alert("Failed to generate PDF for printing.");
+            }
+        } catch (err: any) {
+            console.error("Error generating print notice:", err);
+            alert("Error generating notice for print. Check console.");
+        }
     };
 
     return (
@@ -92,11 +178,14 @@ export default function ExamSchedule() {
                     exams.map((exam, index) => (
                         <ExamCard 
                             key={exam.id}
+                            id={exam.id}
                             title={exam.title}
                             date={formatDate(exam.date_time)}
                             time={formatTime(exam.date_time)}
                             subject={exam.subject}
-                            status={index === 0 ? 'Upcoming' : 'Upcoming'} // Logic can be complex based on date
+                            status={index === 0 ? 'Upcoming' : 'Upcoming'}
+                            onSendNotice={handleSendNotice}
+                            onPrintNotice={handlePrintNotice}
                         />
                     ))
                 ) : (

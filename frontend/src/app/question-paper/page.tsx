@@ -41,7 +41,7 @@ export default function QuestionPaperStudio() {
 
   const fetchSubjects = async () => {
     try {
-      const res = await axios.get('http://localhost:8999/syllabus/subjects');
+      const res = await axios.get('http://localhost:8005/syllabus/subjects');
       setSubjects(res.data);
     } catch (err) {
       console.error("Failed to fetch subjects");
@@ -51,7 +51,7 @@ export default function QuestionPaperStudio() {
 
   const fetchTopics = async (subj: string) => {
     try {
-      const res = await axios.get(`http://localhost:8999/syllabus/topics?subject=${subj}`);
+      const res = await axios.get(`http://localhost:8005/syllabus/topics?subject=${subj}`);
       setTopics(res.data);
     } catch (err) {
       console.error("Failed to fetch topics");
@@ -60,7 +60,7 @@ export default function QuestionPaperStudio() {
 
   const fetchPapers = async () => {
     try {
-      const res = await axios.get('http://localhost:8999/question-papers');
+      const res = await axios.get('http://localhost:8005/question-papers');
       setPapers(res.data);
     } catch (err) {
       console.error("Failed to fetch papers");
@@ -85,7 +85,7 @@ export default function QuestionPaperStudio() {
     setStep(2);
     try {
       const topicString = selectedTopics.join(", ");
-      const res = await axios.post(`http://localhost:8999/ai/generate-paper?topic=${topicString}&difficulty=${difficulty}`);
+      const res = await axios.post(`http://localhost:8005/ai/generate-paper?topic=${topicString}&difficulty=${difficulty}`);
       setGeneratedContent(res.data.content);
       setPaperId(res.data.paper_id);
       setStep(3);
@@ -100,7 +100,7 @@ export default function QuestionPaperStudio() {
 
   const exportPDF = (id: number | null) => {
     if (!id) return;
-    window.open(`http://localhost:8999/question-papers/export/${id}`, '_blank');
+    window.open(`http://localhost:8005/question-papers/export/${id}`, '_blank');
   };
 
   return (

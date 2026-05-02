@@ -18,7 +18,7 @@ class AIContentGenerator:
 
     async def generate_assignment(self, topic: str) -> str:
         """Generates a structured assignment from a topic."""
-        prompt = f"Generate a detailed student assignment on the topic: '{topic}'. Include a summary, 5 key learning objectives, and 3 tasks."
+        prompt = f"System: You are an expert Python Professor. Generate challenging coding questions only.\nGenerate a detailed student assignment on the Python topic: '{topic}'. Include a summary, 5 key learning objectives, and 3 coding tasks."
         
         if not self.model:
             return f"[MOCK] Assignment for {topic}: \n1. Research the basics.\n2. Write a summary.\n3. Present findings."
@@ -31,7 +31,7 @@ class AIContentGenerator:
 
     async def generate_question_paper(self, topic: str, difficulty: str = "Medium") -> str:
         """Generates a full question paper."""
-        prompt = f"Create a {difficulty} level question paper on '{topic}'. Include 5 MCQs, 3 Short Answer Questions, and 1 Long Answer Question."
+        prompt = f"System: You are an expert Python Professor. Generate challenging coding questions only.\nCreate a {difficulty} level question paper on the Python topic '{topic}'. Must include:\n1. 5 Multiple Choice Questions on Python logic.\n2. 3 'What is the output?' code blocks.\n3. 2 Bug-fixing exercises where students must identify a SyntaxError or LogicalError.\n4. 1 Long Answer coding task."
         
         if not self.model:
             return f"[MOCK] Question Paper: {topic}\nSection A: MCQs...\nSection B: Short Answers..."

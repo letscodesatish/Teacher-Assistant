@@ -47,7 +47,7 @@ class Attendance(Base):
 class Syllabus(Base):
     __tablename__ = 'syllabus'
     id = Column(Integer, primary_key=True)
-    subject = Column(String(100), nullable=False)
+    subject = Column('python_module', String(100), nullable=False)
     topic = Column(String(200), nullable=False)
     is_completed = Column(Boolean, default=False)
     completion_date = Column(DateTime)
@@ -57,7 +57,7 @@ class Exam(Base):
     id = Column(Integer, primary_key=True)
     title = Column(String(100), nullable=False)
     date_time = Column(DateTime, nullable=False)
-    subject = Column(String(100))
+    subject = Column('python_module', String(100))
     
     grades = relationship("Grade", back_populates="exam")
 
@@ -78,7 +78,7 @@ class Assignment(Base):
     title = Column(String(100), nullable=False)
     description = Column(Text)
     due_date = Column(Date)
-    subject = Column(String(100))
+    subject = Column('python_module', String(100))
     is_ai_generated = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -86,7 +86,7 @@ class QuestionPaper(Base):
     __tablename__ = 'question_papers'
     id = Column(Integer, primary_key=True)
     title = Column(String(200), nullable=False)
-    subject = Column(String(100), nullable=False)
+    subject = Column('python_module', String(100), nullable=False)
     topics = Column(Text)  # Comma-separated or JSON
     difficulty = Column(String(20))
     total_marks = Column(Integer, default=100)
@@ -102,6 +102,15 @@ class User(Base):
     google_id = Column(String(100), unique=True, nullable=True)
     avatar_url = Column(String(500), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class ClassGroupLinkModel(Base):
+    __tablename__ = 'class_group_links'
+    id = Column(Integer, primary_key=True)
+    class_name = Column(String(100), nullable=False)
+    subject_code = Column('module_code', String(100), nullable=False)
+    whatsapp_group_id = Column(String(100), nullable=False)
+    teacher_id = Column(String(100), nullable=False)
+    is_linked = Column(Boolean, default=True)
 
 # Database setup (using SQLite for local demo, easy to swap to PostgreSQL)
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./teacher_assistant.db")

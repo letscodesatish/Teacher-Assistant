@@ -24,7 +24,7 @@ const SyllabusPage = () => {
 
     const fetchSyllabus = async () => {
         try {
-            const resp = await axios.get('http://localhost:8999/syllabus');
+            const resp = await axios.get('http://localhost:8005/syllabus');
             setItems(resp.data);
         } catch (error) {
             console.error('Fetch failed:', error);
@@ -35,7 +35,7 @@ const SyllabusPage = () => {
 
     const toggleItem = async (id: number) => {
         try {
-            await axios.post(`http://localhost:8999/syllabus/toggle/${id}`);
+            await axios.post(`http://localhost:8005/syllabus/toggle/${id}`);
             setItems(items.map(item => 
                 item.id === id ? { ...item, is_completed: !item.is_completed } : item
             ));

@@ -8,8 +8,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
-  title: "Teacher Assistant",
-  description: "AI-powered assistant for teachers",
+  title: "GuruDesk - Python Teacher Assistant",
+  description: "AI-powered specialized assistant for Python teachers",
 };
 
 export default function RootLayout({

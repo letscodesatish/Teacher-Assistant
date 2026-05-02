@@ -12,6 +12,7 @@ import {
   Cpu,
   BookOpen,
   User,
+  MessageSquare,
   LogIn,
   LogOut,
   GraduationCap
@@ -24,6 +25,7 @@ const navItems = [
   { id: 'assignments', label: 'Assignment Manager', icon: ClipboardList, path: '/assignments' },
   { id: 'ai-question', label: 'AI Question Paper', icon: Cpu, path: '/question-paper' },
   { id: 'syllabus', label: 'Syllabus Tracker', icon: BookOpen, path: '/syllabus' },
+  { id: 'whatsapp-links', label: 'WhatsApp Links', icon: MessageSquare, path: '/link-group' },
   { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
 ];
 
@@ -36,11 +38,11 @@ const Sidebar = () => {
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-logo">
-        <div className="bg-active p-1.5 rounded-lg">
-           <GraduationCap size={20} color="white" />
+      <div className="sidebar-logo flex flex-col items-center">
+        <div className="flex items-center justify-center w-full" style={{ maxWidth: '160px', height: '160px' }}>
+           <img src="/logo.png" alt="GuruDesk Logo" className="w-full h-full object-contain" />
         </div>
-        <span>Teacher Assistant</span>
+        <span className="font-black text-4xl text-black">GuruDesk</span>
       </div>
 
       <nav className="flex-1 overflow-y-auto">

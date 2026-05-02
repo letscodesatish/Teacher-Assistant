@@ -26,7 +26,7 @@ const AssignmentsPage: React.FC = () => {
 
     const fetchAssignments = async () => {
         try {
-            const resp = await axios.get('http://localhost:8999/assignments');
+            const resp = await axios.get('http://localhost:8005/assignments');
             setAssignments(resp.data);
         } catch (error) {
             console.error('Fetch failed:', error);
@@ -43,7 +43,7 @@ const AssignmentsPage: React.FC = () => {
     const generateAIAsn = async () => {
         setGenerating(true);
         try {
-            await axios.post('http://localhost:8999/assignments/generate', { topic });
+            await axios.post('http://localhost:8005/assignments/generate', { topic });
             setTopic('');
             fetchAssignments();
         } catch (error) {

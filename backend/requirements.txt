@@ -8,10 +8,12 @@ python-jose[cryptography]
 google-auth
 python-dotenv
 psycopg2-binary
-deepface
+# deepface (unsupported on this python version)
 opencv-python-headless
 numpy
 reportlab
 twilio
 pydantic
 python-dotenv
+httpx
+motor
